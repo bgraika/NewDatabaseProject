@@ -59,6 +59,9 @@ namespace YelpDatabaseProject
                     }
                     else if (words[1] == " ]")
                     {
+                        //place words[0] into dict as key with a value as "NULL"
+                        categories.Add(words[0], "NULL");
+                        skip = 1;
                         objectCounter = 1;
                     }
 
@@ -148,7 +151,10 @@ namespace YelpDatabaseProject
             string[] attArray = { "business_id ", "Delivery ", "Take-out ", "Drive-thru ", "dessert ", "latenight ", "lunch ", "dinner ", "brunch ", "breakfast ", "Caters ", "Noise Level ", "Takes Reservations ", "Romantic ", "intimate ", "classy ", "hipster ", "divey ", "touristy ", "trendy ", "upscale ", "casual ", "garage ", "street ", "validated ", "lot ", "valet ", "Has TV ", "Outdoor ", "Attire ", "Alcohol ", "Waiter Service ", "Accepts Credit Cards ", "Good For Kids ", "Good For Groups ", "Price Range " };
             string[] attNArray = { "@business_id", "@delivery", "@take_out", "@drive_thru", "@dessert", "@late_night", "@lunch", "@dinner", "@brunch", "@breakfast", "@caters", "@noise_level", "@reservations", "@romantic", "@intimate", "@classy", "@hipster", "@divey", "@touristy", "@trendy", "@upscale", "@casual", "@garage", "@street", "@validated", "@lot", "@valet", "@tv", "@outdoor_seating", "@attire", "@alcohol", "@waiter_service", "@accepts_CC", "@good_for_kids", "@good_for_groups", "@price_range" };
             string stmtb = "INSERT INTO business(id, address, open, city, name, longitude, state, stars, latitude, review_count) VALUES(@id, @address, @open, @city, @name, @longitude, @state, @stars, @latitude, @review_count)";
-
+            string stmtc = "INSERT INTO categories(business_id, category) VALUES (@business_id, @category)";
+            List<string> categoryList = new List<string>(); //will place all categories into here
+            List<string> categoryListTemp = new List<string>(); //will place all categories into here
+            List<List<string>> allCats = new List<List<string>>();
             //// *** set up command to insert into business table ***
             MySqlCommand cmdb = new MySqlCommand(stmtb, conn);
             cmdb.Parameters.Add("@id", MySqlDbType.VarChar, 60);
@@ -243,13 +249,38 @@ namespace YelpDatabaseProject
                         cmda.Parameters[attNArray[k]].Value = isDBNull(dicts[1][j], attArray[k]);
                     }
                 }
-                if (j == 8)
-                {
-
-                }
                 cmda.ExecuteNonQuery(); //execute the insert command 
+            } //eo attribute table inserts
+
+            // **** Set up commands to insert into categories table ****
+            MySqlCommand cmdc = new MySqlCommand(stmtc, conn);
+            cmdc.Parameters.Add("@business_id", MySqlDbType.VarChar, 60);
+            cmdc.Parameters.Add("@category", MySqlDbType.VarChar, 60);
+
+            for (int c = 0; c < dicts[2].Count; c++) //place all categories into a list
+            {
+                foreach (string key in dicts[2][c].Keys)
+                {
+                    categoryList.Add(key);
+                    if (dicts[2][c][key] != "NULL")
+                    {
+                        categoryList.Add(dicts[2][c][key]);
+                    }
+                }
+                categoryListTemp = categoryList.ToList();                
+                allCats.Add(categoryListTemp);
+                categoryList.Clear();
             }
 
+            for(int d = 0; d < allCats.Count; d++)
+            {
+                foreach(string val in allCats[d])
+                {
+                    cmdc.Parameters["@business_id"].Value = dicts[0][d]["business_id "].ToString();
+                    cmdc.Parameters["@category"].Value = val;
+                    cmdc.ExecuteNonQuery(); //execute the insert command 
+                }
+            }
         } //end of Dict_to_SQL_Business
 
         public List<Dictionary<string, string>> JSON_to_Dict_Review(string infile)
