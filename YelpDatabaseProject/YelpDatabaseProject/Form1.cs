@@ -30,16 +30,16 @@ namespace YelpDatabaseProject
 
             json = new JSON(ex);
             //json.Convert("yelp_business.json", "Test2.txt");
-            // json.Convert("yelp_review.json", "Text3.txt");
+             //json.Convert("yelp_review.json", "Text3.txt");
             //json.Convert("yelp_user.json", "Text4.txt");
-            //businessDicts = sqlIns.JSON_to_Dict_Business("Test2.txt"); //change business table to dictionaries
+            businessDicts = sqlIns.JSON_to_Dict_Business("Test2.txt"); //change business table to dictionaries
             //reviewDicts = sqlIns.JSON_to_Dict_Review("Text3.txt");
             //userDicts = sqlIns.JSON_to_Dict_User("Text4.txt");
             if (mydb.OpenConnection() == true)
             {
             }
 
-            //sqlIns.Dict_to_SQL_Business(businessDicts, mydb.connect);
+            sqlIns.Dict_to_SQL_Business(businessDicts, mydb.connect);
             //sqlIns.Dict_to_SQL_Review(reviewDicts,mydb.connect);
             //sqlIns.Dict_to_SQL_User(userDicts, mydb.connect);
         }
@@ -170,6 +170,11 @@ namespace YelpDatabaseProject
         }
 
         private void label16_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void checkedListBox1_SelectedIndexChanged(object sender, EventArgs e)
         {
 
         }

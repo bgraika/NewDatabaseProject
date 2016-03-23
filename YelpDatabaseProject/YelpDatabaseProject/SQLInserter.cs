@@ -147,11 +147,11 @@ namespace YelpDatabaseProject
         public void Dict_to_SQL_Business(List<List<Dictionary<string, string>>> dicts, MySqlConnection conn)
         {
             string stmta = "INSERT INTO attributes(business_id, delivery, take_out, drive_thru, dessert, late_night, lunch, dinner, brunch, breakfast, caters, noise_level, reservations, romantic, intimate, classy, hipster, divey, touristy, trendy, upscale, casual, garage, street, validated, lot, valet, tv, outdoor_seating, attire, alcohol, waiter_service, accepts_CC, good_for_kids, good_for_groups, price_range)";
-            stmta = stmta + " VALUES (@business_id, @delivery, @take_out, @drive_thru, @dessert, @late_night, @lunch, @dinner, @brunch, @breakfast, @caters, @noise_level, @reservations, @romantic, @intimate, @classy, @hipster, @divey, @touristy, @trendy, @upscale, @casual, @garage, @street, @validated, @lot, @valet, @tv, @outdoor_seating, @attire, @alcohol, @waiter_service, @accepts_CC, @good_for_kids, @good_for_groups, @price_range)";
+            stmta = stmta + " VALUES (@business_id, @delivery, @take_out, @drive_thru, @dessert, @late_night, @lunch, @dinner, @brunch, @breakfast, @caters, @noise_level, @reservations, @romantic, @intimate, @classy, @hipster, @divey, @touristy, @trendy, @upscale, @casual, @garage, @street, @validated, @lot, @valet, @tv, @outdoor_seating, @attire, @alcohol, @waiter_service, @accepts_CC, @good_for_kids, @good_for_groups, @price_range);";
             string[] attArray = { "business_id ", "Delivery ", "Take-out ", "Drive-thru ", "dessert ", "latenight ", "lunch ", "dinner ", "brunch ", "breakfast ", "Caters ", "Noise Level ", "Takes Reservations ", "Romantic ", "intimate ", "classy ", "hipster ", "divey ", "touristy ", "trendy ", "upscale ", "casual ", "garage ", "street ", "validated ", "lot ", "valet ", "Has TV ", "Outdoor ", "Attire ", "Alcohol ", "Waiter Service ", "Accepts Credit Cards ", "Good For Kids ", "Good For Groups ", "Price Range " };
             string[] attNArray = { "@business_id", "@delivery", "@take_out", "@drive_thru", "@dessert", "@late_night", "@lunch", "@dinner", "@brunch", "@breakfast", "@caters", "@noise_level", "@reservations", "@romantic", "@intimate", "@classy", "@hipster", "@divey", "@touristy", "@trendy", "@upscale", "@casual", "@garage", "@street", "@validated", "@lot", "@valet", "@tv", "@outdoor_seating", "@attire", "@alcohol", "@waiter_service", "@accepts_CC", "@good_for_kids", "@good_for_groups", "@price_range" };
-            string stmtb = "INSERT INTO business(id, address, open, city, name, longitude, state, stars, latitude, review_count) VALUES(@id, @address, @open, @city, @name, @longitude, @state, @stars, @latitude, @review_count)";
-            string stmtc = "INSERT INTO categories(business_id, category) VALUES (@business_id, @category)";
+            string stmtb = "INSERT INTO business(id, address, open, city, name, longitude, state, stars, latitude, review_count) VALUES(@id, @address, @open, @city, @name, @longitude, @state, @stars, @latitude, @review_count);";
+            string stmtc = "INSERT INTO categories(business_id, category) VALUES (@business_id, @category);";
             List<string> categoryList = new List<string>(); //will place all categories into here
             List<string> categoryListTemp = new List<string>(); //will place all categories into here
             List<List<string>> allCats = new List<List<string>>();
@@ -291,17 +291,22 @@ namespace YelpDatabaseProject
             int objectCounter = 0;
             int skip = 0;
             string[] attNames = { "votes ", "funny ", "useful ", "cool ", "user_id ", "review_id ", "stars ", "date ", "text ", "type ", "business_id " };
-            string[] fileText = File.ReadAllLines(infile);
+            //string[] fileText = File.ReadAllLines(infile);
             int linenum = 0;
+            StreamReader sr = new StreamReader(infile);
+            string line = "";
 
-            foreach (string line in fileText)
+            //foreach (string line in fileText)
+            while ((line = sr.ReadLine()) != null)
             {
-                if (linenum > 40000)
-                {
-                    break;
-                }
+                //if (linenum > 50000)
+                //{
+                 //   break;
+                //}
                 skip = 0;
-                string[] words = line.Split('=');
+                string[] words = { "test", "test", "test" };
+                try { words = line.Split('='); }
+                catch { }
                 if (words[0] == "{")
                 {
                     objectCounter++;
@@ -333,9 +338,12 @@ namespace YelpDatabaseProject
                 {
                     if (words[1].Length > 1000) //cut some of text if its too long
                     {
-                        words[1] = words[1].Remove(words[1].Length - (words[1].Length - 1001));
+                        words[1] = words[1].Remove(words[1].Length - (words[1].Length - 1000));
                     }
-                    words[1] = words[1].Remove(words[1].Length - 1); //remove the ;
+                    else
+                    {
+                        words[1] = words[1].Remove(words[1].Length - 1); //remove the ;
+                    }
                     review.Add(words[0], words[1]);
                 }
                 linenum++;
@@ -345,7 +353,7 @@ namespace YelpDatabaseProject
 
         public void Dict_to_SQL_Review(List<Dictionary<string, string>> revdicts, MySqlConnection conn)
         {
-            string stmtr = "INSERT INTO review(business_id, user_id, cool, type, funny, text, review_id, stars, date, useful) VALUES(@business_id, @user_id, @cool, @type, @funny, @text, @review_id, @stars, @date, @useful)";
+            string stmtr = "INSERT INTO review(business_id, user_id, cool, type, funny, text, review_id, stars, date, useful) VALUES(@business_id, @user_id, @cool, @type, @funny, @text, @review_id, @stars, @date, @useful);";
 
             //// *** set up command to insert into business table ***
             MySqlCommand cmdb = new MySqlCommand(stmtr, conn);
@@ -363,7 +371,7 @@ namespace YelpDatabaseProject
             //place values into business table
             for (int i = 0; i < revdicts.Count; i++)
             {
-                if (i == 941)
+                if (i == 2000)
                 {
 
                 }

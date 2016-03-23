@@ -83,8 +83,8 @@ namespace YelpDatabaseProject
         {
             List<List<String>> qResult = new List<List<String>>();
             int i = 0;
-            if (this.OpenConnection() == true)
-            {
+            //if (this.OpenConnection() == true)
+            //{
                 MySqlCommand cmd = new MySqlCommand(querySTR, connect);
                 MySqlDataReader dataReader = cmd.ExecuteReader();
                 while (dataReader.Read())
@@ -105,8 +105,8 @@ namespace YelpDatabaseProject
                 }
                 dataReader.Close();
 
-                this.CloseConnection();
-            }
+                //this.CloseConnection();
+            //}
             return qResult;
         } //eo SQLSELECTExec
 
