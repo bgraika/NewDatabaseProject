@@ -98,8 +98,15 @@ namespace YelpDatabaseProject
                             List<string> sublist = new List<string>();
                             qResult.Add(sublist);
                         }
-                        //add item to its respective column
+                    //add item to its respective column
+                    try
+                    {
                         qResult[i].Add(dataReader.GetString(column_name));
+                    }
+                    catch
+                    {
+
+                    }
                         i++;
                     }
                 }

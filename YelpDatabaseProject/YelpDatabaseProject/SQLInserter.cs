@@ -155,6 +155,7 @@ namespace YelpDatabaseProject
             List<string> categoryList = new List<string>(); //will place all categories into here
             List<string> categoryListTemp = new List<string>(); //will place all categories into here
             List<List<string>> allCats = new List<List<string>>();
+            List<string> catNames = new List<string>();
             //// *** set up command to insert into business table ***
             MySqlCommand cmdb = new MySqlCommand(stmtb, conn);
             cmdb.Parameters.Add("@id", MySqlDbType.VarChar, 60);
@@ -272,13 +273,32 @@ namespace YelpDatabaseProject
                 categoryList.Clear();
             }
 
+            string busVal = "";
+            string catVal = "";
             for(int d = 0; d < allCats.Count; d++)
             {
                 foreach(string val in allCats[d])
                 {
-                    cmdc.Parameters["@business_id"].Value = dicts[0][d]["business_id "].ToString();
-                    cmdc.Parameters["@category"].Value = val;
-                    cmdc.ExecuteNonQuery(); //execute the insert command 
+                    catVal = "";
+                    for(int i = 0; i < val.Length; i++)
+                    {
+                        if(i == 0 && val[i] == ' ')
+                        {
+
+                        }
+                        else
+                        {
+                            catVal += val[i];
+                        }
+                    }
+                    busVal = dicts[0][d]["business_id "].ToString();
+                    if (!catNames.Contains(catVal+busVal))
+                    {
+                        catNames.Add(catVal+busVal);
+                        cmdc.Parameters["@business_id"].Value = dicts[0][d]["business_id "].ToString();
+                        cmdc.Parameters["@category"].Value = catVal;
+                        cmdc.ExecuteNonQuery(); //execute the insert command 
+                    }
                 }
             }
         } //end of Dict_to_SQL_Business
