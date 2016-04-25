@@ -1,85 +1,84 @@
 create table business (
-	id 				varchar(60) primary key,
-	address 		varchar(60) not null,
-	name 			varchar(30) not null,
-	state 			char(2) not null,
-	city 			char(24) not null,
-	longitude 		double not null,
-	latitude 		double not null,
-	open 			boolean not null,
-	review_count 	int not null,
-	type 			char(30) not null
+ id     varchar(60) primary key,
+ address   varchar(60) not null,
+ name   varchar(60) not null,
+ state    varchar(3) not null,
+ city    varchar(60) not null,
+ longitude   double not null,
+ latitude   double not null,
+ stars   double,
+ open    varchar(10) not null,
+ review_count  int
 );
 
 create table attributes (
-	business_id 	varchar(60) references business(id),
-	delivery 		boolean not null,
-	take_out 		boolean not null,
-	drive_thru 		boolean not null,
-	dessert 		boolean not null,
-	late_night 		boolean not null,
-	lunch 			boolean not null,
-	dinner 			boolean not null,
-	brunch 			boolean not null,
-	breakfast 		boolean not null,
-	caters			boolean not null,
-	noise_level 	char(10) not null,
-	reservations 	boolean not null,
-	romantic 		boolean not null,
-	intimate 		boolean not null,
-	classy 			boolean not null,
-	hipster 		boolean not null,
-	divey 			boolean not null,
-	touristy 		boolean not null,
-	trendy 			boolean not null,
-	upscale 		boolean not null,
-	casual 			boolean not null,
-	garage 			boolean not null,
-	street 			boolean not null,
-	validated 		boolean not null,
-	lot 			boolean not null,
-	valet 			boolean not null,
-	tv 				boolean not null,
-	outdoor_seating boolean not null,
-	attire 			char(20) not null,
-	alcohol 		char(20) not null, 
-	waiter_service 	boolean not null,
-	accepts_CC 		boolean not null,
-	good_for_kids 	boolean not null,
-	good_for_groups boolean not null,
-	price_range 	int not null
+ business_id  varchar(60) references business(id),
+ delivery   varchar(10),
+ take_out   varchar(10),
+ drive_thru   varchar(10),
+ dessert   varchar(10),
+ late_night   varchar(10),
+ lunch    varchar(10),
+ dinner    varchar(10),
+ brunch    varchar(10),
+ breakfast   varchar(10),
+ caters   varchar(10),
+ noise_level  varchar(10),
+ reservations  varchar(10),
+ romantic   varchar(10),
+ intimate   varchar(10),
+ classy    varchar(10),
+ hipster   varchar(10),
+ divey    varchar(10),
+ touristy   varchar(10),
+ trendy    varchar(10),
+ upscale   varchar(10),
+ casual    varchar(10),
+ garage    varchar(10),
+ street    varchar(10),
+ validated   varchar(10),
+ lot    varchar(10),
+ valet    varchar(10),
+ tv     varchar(10),
+ outdoor_seating varchar(10),
+ attire    varchar(30),
+ alcohol   varchar(30), 
+ waiter_service  varchar(10),
+ accepts_CC   varchar(10),
+ good_for_kids  varchar(10),
+ good_for_groups varchar(10),
+ price_range  int,
+ PRIMARY KEY(business_id)
  );
 
+create table review (
+ business_id varchar(60) references business(id),
+ user_id  varchar(60),
+ cool  int default 0,
+ type  varchar(20),
+ funny  int default 0,
+ text  varchar(1000),
+ review_id   varchar(60) primary key,
+ stars  int default 0,
+ date  datetime,
+ useful  int default 0
+);
+
 create table user (
-	id int primary key
-);
-
-create table neighborhood (
-	business_id varchar(60) references business(id),
-	name 		varchar(40) not null
-);
-
-create table hours (
-	business_id varchar(60) references business(id),
-	day 		char(10) not null,
-	open 		time not null,
-	close 		time not null
+ user_id varchar(60) primary key,
+ yelping_since datetime,
+ review_count int,
+ name varchar(60),
+ funny int,
+ useful int,
+ cool int,
+ fans int,
+ average_stars double,
+ type varchar(30)
 );
 
 create table categories (
-	business_id varchar(60) references business(id),
-	category 	char(24) not null
-);
-
-create table review (
-	business_id varchar(60) references business(id),
-	user_id 	int references user(id),
-	cool		int default 0,
-	type		char(20) not null,
-	funny		int default 0,
-	text		varchar(200),
-	id			int primary key,
-	stars		int default 0,
-	date		datetime not null,
-	useful		int default 0
+ business_id varchar(60) references business(id),
+ category  varchar(60),
+ PRIMARY KEY (business_id, category)
 );
