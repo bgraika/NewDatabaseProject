@@ -35,12 +35,24 @@ namespace YelpDatabaseProject
             int objectCounter = 0;
             int tableNum = 0;
             int skip = 0;
+            int i = 0;
+            int j = 1;
 
             string[] fileText = File.ReadAllLines(infile);
             foreach (string line in fileText)
             {
                 skip = 0;
                 string[] words = line.Split('=');
+                if(words[0] == "full_address ")
+                {
+                    //copy full address over
+                    j = 1;
+                    while(fileText[i+j].Contains('=') == false)
+                    {
+                        words[1] += fileText[i + j];
+                        j++;
+                    }
+                }
                 if (words[0] == "{")
                 {
                     objectCounter++;
@@ -126,6 +138,7 @@ namespace YelpDatabaseProject
                         default: break;
                     }
                 }
+                i++;
             } //end of for each line
 
             dictLists.Add(businessList);
@@ -150,16 +163,19 @@ namespace YelpDatabaseProject
             stmta = stmta + " VALUES (@business_id, @delivery, @take_out, @drive_thru, @dessert, @late_night, @lunch, @dinner, @brunch, @breakfast, @caters, @noise_level, @reservations, @romantic, @intimate, @classy, @hipster, @divey, @touristy, @trendy, @upscale, @casual, @garage, @street, @validated, @lot, @valet, @tv, @outdoor_seating, @attire, @alcohol, @waiter_service, @accepts_CC, @good_for_kids, @good_for_groups, @price_range);";
             string[] attArray = { "business_id ", "Delivery ", "Take-out ", "Drive-thru ", "dessert ", "latenight ", "lunch ", "dinner ", "brunch ", "breakfast ", "Caters ", "Noise Level ", "Takes Reservations ", "Romantic ", "intimate ", "classy ", "hipster ", "divey ", "touristy ", "trendy ", "upscale ", "casual ", "garage ", "street ", "validated ", "lot ", "valet ", "Has TV ", "Outdoor ", "Attire ", "Alcohol ", "Waiter Service ", "Accepts Credit Cards ", "Good For Kids ", "Good For Groups ", "Price Range " };
             string[] attNArray = { "@business_id", "@delivery", "@take_out", "@drive_thru", "@dessert", "@late_night", "@lunch", "@dinner", "@brunch", "@breakfast", "@caters", "@noise_level", "@reservations", "@romantic", "@intimate", "@classy", "@hipster", "@divey", "@touristy", "@trendy", "@upscale", "@casual", "@garage", "@street", "@validated", "@lot", "@valet", "@tv", "@outdoor_seating", "@attire", "@alcohol", "@waiter_service", "@accepts_CC", "@good_for_kids", "@good_for_groups", "@price_range" };
-            string stmtb = "INSERT INTO business(id, address, open, city, name, longitude, state, stars, latitude, review_count) VALUES(@id, @address, @open, @city, @name, @longitude, @state, @stars, @latitude, @review_count);";
+            string stmtb = "INSERT INTO business(id, address, zipcode, open, city, name, longitude, state, stars, latitude, review_count) VALUES(@id, @address, @zipcode, @open, @city, @name, @longitude, @state, @stars, @latitude, @review_count);";
             string stmtc = "INSERT INTO categories(business_id, category) VALUES (@business_id, @category);";
             List<string> categoryList = new List<string>(); //will place all categories into here
             List<string> categoryListTemp = new List<string>(); //will place all categories into here
             List<List<string>> allCats = new List<List<string>>();
             List<string> catNames = new List<string>();
+            string tempadr;
+
             //// *** set up command to insert into business table ***
             MySqlCommand cmdb = new MySqlCommand(stmtb, conn);
             cmdb.Parameters.Add("@id", MySqlDbType.VarChar, 60);
-            cmdb.Parameters.Add("@address", MySqlDbType.VarChar, 60);
+            cmdb.Parameters.Add("@address", MySqlDbType.VarChar, 200);
+            cmdb.Parameters.Add("@zipcode", MySqlDbType.VarChar, 60);
             cmdb.Parameters.Add("@open", MySqlDbType.VarChar, 10);
             cmdb.Parameters.Add("@city", MySqlDbType.VarChar, 60);
             cmdb.Parameters.Add("@review_count", MySqlDbType.Int32);
@@ -174,6 +190,9 @@ namespace YelpDatabaseProject
             {
                 cmdb.Parameters["@id"].Value = dicts[0][i]["business_id "].ToString();
                 cmdb.Parameters["@address"].Value = dicts[0][i]["full_address "].ToString();
+                tempadr = dicts[0][i]["full_address "].ToString();
+                string[] tempadr_split = tempadr.Split(' ');
+                cmdb.Parameters["@zipcode"].Value = tempadr_split[tempadr_split.Count() - 1];
                 cmdb.Parameters["@open"].Value = dicts[0][i]["open "].ToString();
                 cmdb.Parameters["@city"].Value = dicts[0][i]["city "].ToString();
                 cmdb.Parameters["@review_count"].Value = Convert.ToInt32(dicts[0][i]["review_count "].ToString());

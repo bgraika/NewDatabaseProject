@@ -30,7 +30,7 @@ namespace YelpDatabaseProject
 
             json = new JSON(ex);
             //json.Convert("yelp_business.json", "Test2.txt");
-             //json.Convert("yelp_review.json", "Text3.txt");
+            //Json.Convert("yelp_review.json", "Text3.txt");
             //json.Convert("yelp_user.json", "Text4.txt");
             //businessDicts = sqlIns.JSON_to_Dict_Business("Test2.txt"); //change business table to dictionaries
             //reviewDicts = sqlIns.JSON_to_Dict_Review("Text3.txt");
@@ -42,6 +42,7 @@ namespace YelpDatabaseProject
             //sqlIns.Dict_to_SQL_Business(businessDicts, mydb.connect);
             //sqlIns.Dict_to_SQL_Review(reviewDicts,mydb.connect);
             //sqlIns.Dict_to_SQL_User(userDicts, mydb.connect);
+
 
             //****** set up business category checklist ******
             //must make a list of strings that just holds category because all
@@ -93,7 +94,7 @@ namespace YelpDatabaseProject
             populate_demographics("state", stateName, "blank", stateName, population_listbox, avg_income_listbox, median_age_listbox, listBoxU18, listBox18, listBox25, listBox45, listBox65);
 
             //begin populating the city listbox
-            string qStr = "SELECT distinct city FROM business WHERE state= '"+ selected_state + "' ORDER BY city;";
+            string qStr = "SELECT distinct city FROM business WHERE state= '" + selected_state + "' ORDER BY city;";
             List<List<string>> qResult = mydb.SQLSELECTExec(qStr, cityColumn);
             city_listbox.Items.Clear();//delete old items in the listbox
             //copy query results to the listbox
@@ -108,7 +109,7 @@ namespace YelpDatabaseProject
         {
             //add zipcode to the columns to look for
             List<string> cityColumn = new List<string>();
-            cityColumn.Add("zipcode");
+            cityColumn.Add("address");
             string cityName;
 
             string selected_city = city_listbox.SelectedItem.ToString(); //the selected city
@@ -119,14 +120,14 @@ namespace YelpDatabaseProject
             string[] sel_city = selected_city.Split(' ');
             //combine city names if they have spaces
             cityName = sel_city[1];
-            for(int i = 2; i < sel_city.Count(); i++)
+            for (int i = 2; i < sel_city.Count(); i++)
             {
                 cityName += " " + sel_city[i];
             }
             string stateName = convert_state_name(sel_state[1]);
             populate_demographics("city", stateName, cityName, cityName, population_Clistbox, avg_income_Clistbox, median_age_Clistbox, listBoxCU18, listBoxC18, listBoxC25, listBoxC45, listBoxC65);
 
-            string qStr = "SELECT zipcode FROM CensusData WHERE city= '" + cityName + "' ORDER BY zipcode;";
+            string qStr = "SELECT address FROM business WHERE city= '" + selected_city + "' AND state= '" + selected_state + "';";
             List<List<string>> qResult = mydb.SQLSELECTExec(qStr, cityColumn);
 
             zipcode_listbox.Items.Clear(); //delete old items
@@ -135,7 +136,13 @@ namespace YelpDatabaseProject
             {
                 for (int i = 0; i < qResult[0].Count(); i++)
                 {
-                    zipcode_listbox.Items.Add(qResult[0][i]);
+                    //get zipcode from address
+                    string[] zip_split = qResult[0][i].Split(' ');
+                    //makes sure the zipcode is already in the listbox
+                    if (!zipcode_listbox.Items.Contains(zip_split[zip_split.Count() - 1]))
+                    {
+                        zipcode_listbox.Items.Add(zip_split[zip_split.Count() - 1]);
+                    }
                 }
             }
         }
@@ -169,13 +176,13 @@ namespace YelpDatabaseProject
                 AVG(18_to_24years) as 18_to_24years,AVG(25_to_44years) as 25_to_44years, AVG(45_to_64years) as 45_to_64years,
                 AVG(65_and_over) as 65_and_over,AVG(median_age) as median_age FROM CensusData WHERE " + type + "= '" + value + "';";
             }
-            else if(type == "city")
+            else if (type == "city")
             {
                 qStr = @"SELECT SUM(population) as population,AVG(avg_income) as avg_income, AVG(under18years) as under18years,
                 AVG(18_to_24years) as 18_to_24years,AVG(25_to_44years) as 25_to_44years, AVG(45_to_64years) as 45_to_64years,
                 AVG(65_and_over) as 65_and_over,AVG(median_age) as median_age FROM CensusData WHERE " + type + "= '" + value + "' AND state= '" + state + "';";
             }
-            else if(type == "zipcode")
+            else if (type == "zipcode")
             {
                 qStr = @"SELECT population,avg_income,under18years,18_to_24years,25_to_44years,
                 45_to_64years,65_and_over,median_age FROM CensusData WHERE " + type + "= '" + value + "';";
@@ -232,7 +239,7 @@ namespace YelpDatabaseProject
         //function that converts state name initials to a full state name
         private string convert_state_name(string state)
         {
-            switch(state)
+            switch (state)
             {
                 case "IL":
                     return "Illinois";
@@ -252,7 +259,7 @@ namespace YelpDatabaseProject
         //only allow 5 items to be checked in busDemCheckedListBox
         private void busDemCheckedListBox_ItemCheck(object sender, ItemCheckEventArgs e)
         {
-            if(busDemCheckedListBox.CheckedItems.Count >= 5 && e.CurrentValue != CheckState.Checked)
+            if (busDemCheckedListBox.CheckedItems.Count >= 5 && e.CurrentValue != CheckState.Checked)
             {
                 e.NewValue = e.CurrentValue;
             }
@@ -261,21 +268,49 @@ namespace YelpDatabaseProject
         //populates business summary when clicked
         private void updateBusCatButton_Click(object sender, EventArgs e)
         {
+            string selected_state = "";
+            string selected_city = "";
+            string selected_zip = "";
+
+            //make sure a state is selected
+            if (state_dropDown.SelectedIndex > -1)
+            {
+                selected_state = state_dropDown.SelectedItem.ToString(); //the selected state
+            }
+            if (city_listbox.SelectedIndex > -1)
+            {
+                selected_city = city_listbox.SelectedItem.ToString();
+            }
+            if (zipcode_listbox.SelectedIndex > -1)
+            {
+                selected_zip = zipcode_listbox.SelectedItem.ToString();
+            }
             //state business summary
-            string selected_state = state_dropDown.SelectedItem.ToString(); //the selected state
-            ListBox[,] listboxes = get_busSumlistBoxes("state");
-            populate_busSummary("state", selected_state, listboxes);
+            if (selected_state != null)
+            {
+                ListBox[,] listboxes = get_busSumlistBoxes("state");
+                populate_busSummary("state", selected_state, "blank", listboxes);
+            }
+            if (selected_city != null && selected_state != null)
+            {
+                ListBox[,] listboxes = get_busSumlistBoxes("city");
+                populate_busSummary("city", selected_city, selected_state, listboxes);
+            }
+            if (selected_zip != null)
+            {
+                ListBox[,] listboxes = get_busSumlistBoxes("zipcode");
+                populate_busSummary("zipcode", selected_zip, "blank", listboxes);
+            }
         }
         //function that populates a business summary
-        private void populate_busSummary(string type, string value, ListBox[,] listBoxes)
+        private void populate_busSummary(string type, string value, string state, ListBox[,] listBoxes)
         {
             int i = 0;
-            int j = 0;
-            int k = 0;
             string qryStr = "";
             //add business_id to the columns to look for
             List<string> bidColumn = new List<string>();
             List<string> catColumn = new List<string>();
+            List<List<string>> qResult = new List<List<string>>();
             bidColumn.Add("id1");
             bidColumn.Add("stars");
             bidColumn.Add("review_count");
@@ -284,54 +319,120 @@ namespace YelpDatabaseProject
             foreach (string item in busDemCheckedListBox.CheckedItems)
             {
                 //first get the business_ids associated with the selected cateogry and region
-                if(type == "state")
+                if (type == "state")
                 {
                     qryStr = "select COUNT(id) as id1, AVG(stars) as stars, AVG(review_count) as review_count from business, categories Where category = '";
                     qryStr += item + "'" + " AND id = business_id AND state = '" + value + "' GROUP BY category;";
+
+                    //run the query to find business_ids of the selected category
+                    qResult = mydb.SQLSELECTExec(qryStr, bidColumn);
+
+                    //update the category label
+                    switch (i)
+                    {
+                        case 0:
+                            demCatLabel1.Text = item;
+                            break;
+                        case 1:
+                            demCatLabel2.Text = item;
+                            break;
+                        case 2:
+                            demCatLabel3.Text = item;
+                            break;
+                        case 3:
+                            demCatLabel4.Text = item;
+                            break;
+                        case 4:
+                            demCatLabel5.Text = item;
+                            break;
+                    }
                 }
-                //run the query to find business_ids of the selected category
-                List<List<string>> qResult = mydb.SQLSELECTExec(qryStr, bidColumn);
-                
-                //update the category label
-                switch(i)
+                //first get the business_ids associated with the selected cateogry and region
+                if (type == "city")
                 {
-                    case 0:
-                        demCatLabel1.Text = item;
-                        break;
-                    case 1:
-                        demCatLabel2.Text = item;
-                        break;
-                    case 2:
-                        demCatLabel3.Text = item;
-                        break;
-                    case 3:
-                        demCatLabel4.Text = item;
-                        break;
-                    case 4:
-                        demCatLabel5.Text = item;
-                        break;
+                    qryStr = "select COUNT(id) as id1, AVG(stars) as stars, AVG(review_count) as review_count from business, categories Where category = '";
+                    qryStr += item + "'" + " AND id = business_id AND state = '" + state + "' AND city = '" + value + "' GROUP BY category;";
+
+                    //run the query to find business_ids of the selected category
+                    qResult = mydb.SQLSELECTExec(qryStr, bidColumn);
+
+                    //update the category label
+                    switch (i)
+                    {
+                        case 0:
+                            CdemCatLabel1.Text = item;
+                            break;
+                        case 1:
+                            CdemCatLabel2.Text = item;
+                            break;
+                        case 2:
+                            CdemCatLabel3.Text = item;
+                            break;
+                        case 3:
+                            CdemCatLabel4.Text = item;
+                            break;
+                        case 4:
+                            CdemCatLabel5.Text = item;
+                            break;
+                    }
+                }
+                if (type == "zipcode")
+                {
+                    qryStr = "select COUNT(id) as id1, AVG(stars) as stars, AVG(review_count) as review_count from business, categories Where category = '";
+                    qryStr += item + "'" + " AND id = business_id AND zipcode = '" + value + "' GROUP BY category;";
+
+                    //run the query to find business_ids of the selected category
+                    qResult = mydb.SQLSELECTExec(qryStr, bidColumn);
+
+                    //update the category label
+                    switch (i)
+                    {
+                        case 0:
+                            demCatLabel1.Text = item;
+                            break;
+                        case 1:
+                            demCatLabel2.Text = item;
+                            break;
+                        case 2:
+                            demCatLabel3.Text = item;
+                            break;
+                        case 3:
+                            demCatLabel4.Text = item;
+                            break;
+                        case 4:
+                            demCatLabel5.Text = item;
+                            break;
+                    }
                 }
                 listBoxes[i, 0].Items.Clear();
                 listBoxes[i, 1].Items.Clear();
                 listBoxes[i, 2].Items.Clear();
                 //update the category business info
-                listBoxes[i, 0].Items.Add(qResult[0][0]);
-                listBoxes[i, 1].Items.Add(qResult[1][0]);
-                listBoxes[i, 2].Items.Add(qResult[2][0]);
-
+                if (qResult.Count() == 0)
+                {
+                    listBoxes[i, 0].Items.Add("0");
+                    listBoxes[i, 1].Items.Add("0");
+                    listBoxes[i, 2].Items.Add("0");
+                }
+                else
+                {
+                    listBoxes[i, 0].Items.Add(qResult[0][0]);
+                    listBoxes[i, 1].Items.Add(qResult[1][0]);
+                    listBoxes[i, 2].Items.Add(qResult[2][0]);
+                }
                 i++;
             }
 
 
-        }
+        }//eo populate_bus_summary
 
         //function that puts the needed listboxes for business summary into array form
         private ListBox[,] get_busSumlistBoxes(string type)
         {
-            ListBox[,] listboxes = new ListBox[5,3];
-            
-            if(type == "state")
-            {   
+            ListBox[,] listboxes = new ListBox[5, 3];
+
+            if (type == "state")
+            {
                 //column 1
                 listboxes[0, 0] = Cat1_numB_listBox;
                 listboxes[0, 1] = Cat1_Rate_listBox;
@@ -357,10 +458,133 @@ namespace YelpDatabaseProject
                 listboxes[4, 1] = Cat5_Rate_listBox;
                 listboxes[4, 2] = Cat5_AvgRev_listBox;
             }
+            else if (type == "city")
+            {
+                //column 1
+                listboxes[0, 0] = CCat1_numB_listbox;
+                listboxes[0, 1] = CCat1_Rate_listbox;
+                listboxes[0, 2] = CCat1_AvgRev_listbox;
+
+                //column 2
+                listboxes[1, 0] = CCat2_numB_listbox;
+                listboxes[1, 1] = CCat2_Rate_listbox;
+                listboxes[1, 2] = CCat2_AvgRev_listbox;
+
+                //column 3
+                listboxes[2, 0] = CCat3_numB_listbox;
+                listboxes[2, 1] = CCat3_Rate_listbox;
+                listboxes[2, 2] = CCat3_AvgRev_listbox;
+
+                //column 4
+                listboxes[3, 0] = CCat4_numB_listbox;
+                listboxes[3, 1] = CCat4_Rate_listbox;
+                listboxes[3, 2] = CCat4_AvgRev_listbox;
+
+                //column 5
+                listboxes[4, 0] = CCat5_numB_listbox;
+                listboxes[4, 1] = CCat5_Rate_listbox;
+                listboxes[4, 2] = CCat5_AvgRev_listbox;
+            }
+            else if (type == "zipcode")
+            {
+                //column 1
+                listboxes[0, 0] = ZCat1_numB_listbox;
+                listboxes[0, 1] = ZCat1_Rate_listbox;
+                listboxes[0, 2] = ZCat1_AvgRev_listbox;
+
+                //column 2
+                listboxes[1, 0] = ZCat2_numB_listbox;
+                listboxes[1, 1] = ZCat2_Rate_listbox;
+                listboxes[1, 2] = ZCat2_AvgRev_listbox;
+
+                //column 3
+                listboxes[2, 0] = ZCat3_numB_listbox;
+                listboxes[2, 1] = ZCat3_Rate_listbox;
+                listboxes[2, 2] = ZCat3_AvgRev_listbox;
+
+                //column 4
+                listboxes[3, 0] = ZCat4_numB_listbox;
+                listboxes[3, 1] = ZCat4_Rate_listbox;
+                listboxes[3, 2] = ZCat4_AvgRev_listbox;
+
+                //column 5
+                listboxes[4, 0] = ZCat5_numB_listbox;
+                listboxes[4, 1] = ZCat5_Rate_listbox;
+                listboxes[4, 2] = ZCat5_AvgRev_listbox;
+            }
             return listboxes;
         }
-        // finds attributes for each given category that is checked
-        private void checkedListBox1_ItemCheck(object sender, ItemCheckEventArgs e)
+
+        // ************ TAB 2: Business Search **************
+
+        // Populate the state, city, and zipcode listboxes
+        private void state2_dropDown_DropDown(object sender, EventArgs e)
+        {
+            //must make a list of strings that just holds state because all
+            //we're looking for is state
+            List<string> stateColumn = new List<string>();
+            stateColumn.Add("state");
+
+            string qStr = "SELECT distinct state FROM business ORDER BY state;";
+            List<List<string>> qResult = mydb.SQLSELECTExec(qStr, stateColumn);
+
+            state2_dropDown.Items.Clear();
+            //copy query results to the dropdown
+            for (int i = 0; i < qResult[0].Count(); i++)
+            {
+                state2_dropDown.Items.Add(qResult[0][i]);
+            }
+        }
+        private void state2_dropDown_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            //add city to the columns to look for
+            List<string> cityColumn = new List<string>();
+            cityColumn.Add("city");
+
+            string selected_state = state2_dropDown.SelectedItem.ToString(); //the selected state
+
+            //begin populating the city listbox
+            string qStr = "SELECT distinct city FROM business WHERE state= '" + selected_state + "' ORDER BY city;";
+            List<List<string>> qResult = mydb.SQLSELECTExec(qStr, cityColumn);
+            city2_listbox.Items.Clear();//delete old items in the listbox
+            //copy query results to the listbox
+            for (int i = 0; i < qResult[0].Count(); i++)
+            {
+                city2_listbox.Items.Add(qResult[0][i]);
+            }
+        }
+        private void city2_listbox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            //add zipcode to the columns to look for
+            List<string> cityColumn = new List<string>();
+            cityColumn.Add("address");
+
+            string selected_city = city2_listbox.SelectedItem.ToString(); //the selected city
+            string selected_state = state2_dropDown.SelectedItem.ToString(); //the selected state
+
+
+            string qStr = "SELECT address FROM business WHERE city= '" + selected_city + "' AND state= '" + selected_state + "';";
+            List<List<string>> qResult = mydb.SQLSELECTExec(qStr, cityColumn);
+
+            zipcode2_listbox.Items.Clear(); //delete old items
+            //copy query results to the listbox
+            if (qResult.Count > 0)
+            {
+                for (int i = 0; i < qResult[0].Count(); i++)
+                {
+                    //get zipcode from address
+                    string[] zip_split = qResult[0][i].Split(' ');
+                    //makes sure the zipcode is already in the listbox
+                    if (!zipcode2_listbox.Items.Contains(zip_split[zip_split.Count() - 1]))
+                    {
+                        zipcode2_listbox.Items.Add(zip_split[zip_split.Count() - 1]);
+                    }
+                }
+            }
+        }
+
+        //update the attributes list based on which categories are checked
+        private void BusCatUpdate2_Click(object sender, EventArgs e)
         {
             int i = 0;
             int j = 0;
@@ -404,10 +628,10 @@ namespace YelpDatabaseProject
 
             //make the qry by finding all categories that have been selected
             string qryStr = "select distinct business_id from categories Where category = '";
-            foreach (string item in checkedListBox1.SelectedItems)
+            foreach (string item in checkedListBox1.CheckedItems)
             {
                 //if the last item is found
-                if (i == checkedListBox1.SelectedItems.Count - 1)
+                if (i == checkedListBox1.CheckedItems.Count - 1)
                 {
                     qryStr += item + "'" + ";";
                 }
@@ -436,25 +660,95 @@ namespace YelpDatabaseProject
             }
             List<List<string>> qResult2 = mydb.SQLSELECTExec(qryStr2, attColumn);
 
+            AttCheckedListBox.Items.Clear();
             //check if attributes were found and if so add them to tree view
             foreach (string item1 in attColumn)
             {
                 if (qResult2[k].Contains(" True"))
                 {
                     //TreeNode node = treeView1.Nodes.IndexOfKey(item1)
-                    if(!treeView1.Nodes.ContainsKey(item1))
+                    if (!AttCheckedListBox.Items.Contains(item1))
                     {
-                        treeView1.Nodes.Add(item1);
+                        AttCheckedListBox.Items.Add(item1);
                     }
                 }
                 k++;
             }
-        }//end of check box
+        }//eo update attribute list
 
-        private void Form1_Load(object sender, EventArgs e)
+        //update table search results when search button is clicked
+        private void searchButton_Click(object sender, EventArgs e)
         {
-
+            update_searchResults();
         }
+
+        //function that updates the search results by looking at state,city,zip,categories, and attributes
+        private void update_searchResults()
+        {
+            string selected_state = "";
+            string selected_city = "";
+            string selected_zip = "";
+            List<string> stateCityZipList = new List<string>();
+            List<string> bidColumn = new List<string>();
+            List<List<string>> qResult = new List<List<string>>();
+            bidColumn.Add("name");
+            bidColumn.Add("city");
+            bidColumn.Add("state");
+            bidColumn.Add("zipcode");
+            string qStr = "";
+
+            //check which state/city/zipcode is selected
+            if (state2_dropDown.SelectedIndex > -1)
+            {
+                selected_state = state2_dropDown.SelectedItem.ToString(); //the selected state
+                stateCityZipList.Add(selected_state);
+            }
+            if (city2_listbox.SelectedIndex > -1)
+            {
+                selected_city = city2_listbox.SelectedItem.ToString();
+                stateCityZipList.Add(selected_city);
+            }
+            if (zipcode2_listbox.SelectedIndex > -1)
+            {
+                selected_zip = zipcode2_listbox.SelectedItem.ToString();
+                stateCityZipList.Add(selected_zip);
+            }
+
+            //build the first part of the qStr by finding which state, city, and zip need to be checked
+            for (int i = 0; i < stateCityZipList.Count(); i++)
+            {
+                switch (i)
+                {
+                    case 0:
+                        qStr += "SELECT name, city, state, zipcode FROM business WHERE state = '" + stateCityZipList[i] + "'";
+                        break;
+                    case 1:
+                        qStr += " AND city = '" + stateCityZipList[i] + "'";
+                        break;
+                    case 2:
+                        qStr += " AND zipcode = '" + stateCityZipList[i] + "'";
+                        break;
+                }
+            }
+            qStr += ";";
+
+            //run the query to find the business information
+            qResult = mydb.SQLSELECTExec(qStr, bidColumn);
+
+            dataGridView1.Rows.Clear();
+            dataGridView1.Refresh();
+            //place the given information into the dataGridView Search result table
+            for (int j = 0; j < qResult.Count(); j++)
+            {
+                //since each row in qResults contains all of one type of data ie names or cities
+                //we have to add a new row each time we go through i
+                for (int i = 0; i < qResult[j].Count(); i++)
+                {
+                    dataGridView1.Rows.Add();
+                    dataGridView1.Rows[i].Cells[j].Value = qResult[j][i];
+                }
+            }
+        } //eo update search results
 
     }//eo form1
 }//eo namespace
