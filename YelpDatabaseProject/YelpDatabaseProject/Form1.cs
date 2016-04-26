@@ -15,22 +15,22 @@ namespace YelpDatabaseProject
         MySQL_connection mydb;
         JSON json;
         SQLInserter sqlIns;
-        List<List<Dictionary<string, string>>> businessDicts;
-        List<Dictionary<string, string>> reviewDicts;
-        List<Dictionary<string, string>> userDicts;
+        //List<List<Dictionary<string, string>>> businessDicts;
+        //List<Dictionary<string, string>> reviewDicts;
+        //List<Dictionary<string, string>> userDicts;
         public Form1()
         {
             InitializeComponent();
             mydb = new MySQL_connection();
             sqlIns = new SQLInserter();
-            businessDicts = new List<List<Dictionary<string, string>>>();
-            reviewDicts = new List<Dictionary<string, string>>();
-            userDicts = new List<Dictionary<string, string>>();
+            //businessDicts = new List<List<Dictionary<string, string>>>();
+            //reviewDicts = new List<Dictionary<string, string>>();
+            //userDicts = new List<Dictionary<string, string>>();
             string[] ex = new string[] { "hours", "neighborhoods", "friends", "compliments", "elite" };
 
             json = new JSON(ex);
             //json.Convert("yelp_business.json", "Test2.txt");
-            //Json.Convert("yelp_review.json", "Text3.txt");
+            //json.Convert("yelp_review.json", "Text3.txt");
             //json.Convert("yelp_user.json", "Text4.txt");
             //businessDicts = sqlIns.JSON_to_Dict_Business("Test2.txt"); //change business table to dictionaries
             //reviewDicts = sqlIns.JSON_to_Dict_Review("Text3.txt");
@@ -40,7 +40,7 @@ namespace YelpDatabaseProject
             }
 
             //sqlIns.Dict_to_SQL_Business(businessDicts, mydb.connect);
-            //sqlIns.Dict_to_SQL_Review(reviewDicts,mydb.connect);
+            //sqlIns.Dict_to_SQL_Review(reviewDicts, mydb.connect);
             //sqlIns.Dict_to_SQL_User(userDicts, mydb.connect);
 
 
@@ -691,6 +691,7 @@ namespace YelpDatabaseProject
             List<string> stateCityZipList = new List<string>();
             List<string> bidColumn = new List<string>();
             List<List<string>> qResult = new List<List<string>>();
+            bidColumn.Add("id");
             bidColumn.Add("name");
             bidColumn.Add("city");
             bidColumn.Add("state");
@@ -720,7 +721,7 @@ namespace YelpDatabaseProject
                 switch (i)
                 {
                     case 0:
-                        qStr += "SELECT name, city, state, zipcode FROM business WHERE state = '" + stateCityZipList[i] + "'";
+                        qStr += "SELECT id, name, city, state, zipcode FROM business WHERE state = '" + stateCityZipList[i] + "'";
                         break;
                     case 1:
                         qStr += " AND city = '" + stateCityZipList[i] + "'";
@@ -730,6 +731,9 @@ namespace YelpDatabaseProject
                         break;
                 }
             }
+
+            // add by categories and attributes
+
             qStr += ";";
 
             //run the query to find the business information
@@ -738,17 +742,40 @@ namespace YelpDatabaseProject
             dataGridView1.Rows.Clear();
             dataGridView1.Refresh();
             //place the given information into the dataGridView Search result table
-            for (int j = 0; j < qResult.Count(); j++)
+            for (int j = 1; j < qResult.Count(); j++)// At 1 so it doesn't include id
             {
                 //since each row in qResults contains all of one type of data ie names or cities
                 //we have to add a new row each time we go through i
                 for (int i = 0; i < qResult[j].Count(); i++)
                 {
                     dataGridView1.Rows.Add();
-                    dataGridView1.Rows[i].Cells[j].Value = qResult[j][i];
+                    dataGridView1.Rows[i].Cells[j-1].Value = qResult[j][i];
+                }
+            }
+
+            //Add average rating and # of reviews
+            List<string> select = new List<string>() { "avgRating", "numReviews" };
+
+            string query = "select avg(stars) as avgRating, count(*) as numReviews from review where business_id='";
+
+            //run the query to find the business information
+            for (int i = 0; i < qResult.Count(); i++)
+            {
+                List<List<string>> q = mydb.SQLSELECTExec(query + qResult[0][i] + "';", select);
+                try {
+                    dataGridView1.Rows[i].Cells[4].Value = q[0][0];
+                    dataGridView1.Rows[i].Cells[5].Value = q[1][0];
+                }catch(Exception e)
+                {
+                    dataGridView1.Rows[i].Cells[4].Value = 0;
+                    dataGridView1.Rows[i].Cells[5].Value = 0;
                 }
             }
         } //eo update search results
 
+        private void label54_Click(object sender, EventArgs e)
+        {
+
+        }
     }//eo form1
 }//eo namespace

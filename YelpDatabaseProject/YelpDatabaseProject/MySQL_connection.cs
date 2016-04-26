@@ -34,9 +34,9 @@ namespace YelpDatabaseProject
             string uid;
             string password;
             server = "localhost";
-            database = "Milestone1DB";
+            database = "project";
             uid = "root";
-            password = "Valdez77";
+            password = "root";
             string connectionString = "SERVER=" + server + ";" + "DATABASE=" + database + ";" + "UID=" + uid + ";" + "PASSWORD=" + password + ";";
             connect = new MySqlConnection(connectionString);
         }
@@ -86,6 +86,7 @@ namespace YelpDatabaseProject
             //if (this.OpenConnection() == true)
             //{
                 MySqlCommand cmd = new MySqlCommand(querySTR, connect);
+            cmd.CommandTimeout = 1000;
                 MySqlDataReader dataReader = cmd.ExecuteReader();
                 while (dataReader.Read())
                 {

@@ -171,6 +171,7 @@ namespace YelpDatabaseProject
             List<string> catNames = new List<string>();
             string tempadr;
 
+            /*
             //// *** set up command to insert into business table ***
             MySqlCommand cmdb = new MySqlCommand(stmtb, conn);
             cmdb.Parameters.Add("@id", MySqlDbType.VarChar, 60);
@@ -202,6 +203,7 @@ namespace YelpDatabaseProject
                 cmdb.Parameters["@stars"].Value = Convert.ToDouble(dicts[0][i]["stars "].ToString());
                 cmdb.Parameters["@latitude"].Value = Convert.ToDouble(dicts[0][i]["latitude "].ToString());
 
+                
                 cmdb.ExecuteNonQuery(); //execute the insert command            
             }
 
@@ -271,7 +273,7 @@ namespace YelpDatabaseProject
                 }
                 cmda.ExecuteNonQuery(); //execute the insert command 
             } //eo attribute table inserts
-
+            */
             // **** Set up commands to insert into categories table ****
             MySqlCommand cmdc = new MySqlCommand(stmtc, conn);
             cmdc.Parameters.Add("@business_id", MySqlDbType.VarChar, 60);

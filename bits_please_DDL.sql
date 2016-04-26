@@ -1,6 +1,7 @@
 create table business (
  id     varchar(60) primary key,
- address   varchar(60) not null,
+ address   varchar(200) not null,
+ zipcode varchar(60) not null,
  name   varchar(60) not null,
  state    varchar(3) not null,
  city    varchar(60) not null,
