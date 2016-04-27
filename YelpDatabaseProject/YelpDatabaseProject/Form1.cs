@@ -750,9 +750,40 @@ namespace YelpDatabaseProject
                 qStr += " And category = '" + item + "'";
                 g++;
             }
-            qStr += " GROUP BY review.business_id;";
+            qStr += " GROUP BY review.business_id";
+
+            string query = "";
+            //
+            if ((this.minRating.Text != "" && this.minRating.Text != null) || (this.maxRating.Text != "" && this.maxRating.Text != null) ||
+                (this.minReviews.Text != "" && this.minReviews.Text != null) || (this.maxReviews.Text != "" && this.maxReviews.Text != null))
+            {
+                query = "select * from (" + qStr + ") as r where ";
+
+                if (this.minRating.Text != "" && this.minRating.Text != null)
+                {
+                    query += "r.stars1>" + this.minRating.Text + " ";
+                }
+                if (this.maxRating.Text != "" && this.maxRating.Text != null)
+                {
+                    query += "r.stars1<" + this.maxRating.Text + " ";
+                }
+                if (this.minReviews.Text != "" && this.minReviews.Text != null)
+                {
+                    query += "r.num_rev>" + this.minReviews.Text + " ";
+                }
+                if (this.maxReviews.Text != "" && this.maxReviews.Text != null)
+                {
+                    query += "r.num_rev<" + this.maxReviews.Text + " ";
+                }
+            }
+            else
+            {
+                query = qStr;
+            }
+            query += ";";
+
             //run the query to find the business information
-            qResult = mydb.SQLSELECTExec(qStr, bidColumn);
+            qResult = mydb.SQLSELECTExec(query, bidColumn);
             dataGridView1.Rows.Clear();
             dataGridView1.Refresh();
             //place the given information into the dataGridView Search result table
