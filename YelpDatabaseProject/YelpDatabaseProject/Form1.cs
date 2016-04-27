@@ -12,17 +12,17 @@ namespace YelpDatabaseProject
 {
     public partial class Form1 : Form
     {
-        MySQL_connection mydb;
         JSON json;
         SQLInserter sqlIns;
+        MySQL_connection mydb;
         //List<List<Dictionary<string, string>>> businessDicts;
         //List<Dictionary<string, string>> reviewDicts;
         //List<Dictionary<string, string>> userDicts;
         public Form1()
         {
             InitializeComponent();
-            mydb = new MySQL_connection();
             sqlIns = new SQLInserter();
+            mydb = new MySQL_connection();
             //businessDicts = new List<List<Dictionary<string, string>>>();
             //reviewDicts = new List<Dictionary<string, string>>();
             //userDicts = new List<Dictionary<string, string>>();
@@ -690,14 +690,17 @@ namespace YelpDatabaseProject
             string selected_zip = "";
             List<string> stateCityZipList = new List<string>();
             List<string> bidColumn = new List<string>();
+            List<string> revColumn = new List<string>();
             List<List<string>> qResult = new List<List<string>>();
+            List<List<string>> qResult2 = new List<List<string>>();
             bidColumn.Add("id");
             bidColumn.Add("name");
             bidColumn.Add("city");
             bidColumn.Add("state");
             bidColumn.Add("zipcode");
+            bidColumn.Add("stars1");
+            bidColumn.Add("num_rev");
             string qStr = "";
-
             //check which state/city/zipcode is selected
             if (state2_dropDown.SelectedIndex > -1)
             {
@@ -714,14 +717,19 @@ namespace YelpDatabaseProject
                 selected_zip = zipcode2_listbox.SelectedItem.ToString();
                 stateCityZipList.Add(selected_zip);
             }
-
             //build the first part of the qStr by finding which state, city, and zip need to be checked
             for (int i = 0; i < stateCityZipList.Count(); i++)
             {
                 switch (i)
                 {
                     case 0:
-                        qStr += "SELECT id, name, city, state, zipcode FROM business WHERE state = '" + stateCityZipList[i] + "'";
+                        qStr += "SELECT distinct id, name, city, state, zipcode, AVG(review.stars) as stars1, COUNT(review_id) as num_rev FROM business, review";
+                        //make sure a category is given
+                        if (checkedListBox1.CheckedItems.Count > 0)
+                        {
+                            qStr += ", categories";
+                        }
+                        qStr += " WHERE review.business_id = id AND state = '" + stateCityZipList[i] + "'";
                         break;
                     case 1:
                         qStr += " AND city = '" + stateCityZipList[i] + "'";
@@ -731,51 +739,53 @@ namespace YelpDatabaseProject
                         break;
                 }
             }
-
-            // add by categories and attributes
-
-            qStr += ";";
-
+            int g = 0;
+            //build qStr based on which category are checked            
+            foreach (string item in checkedListBox1.CheckedItems)
+            {
+                if (g == 0)//this statement only needs to be here if a category is selected
+                {
+                    qStr += " And id = categories.business_id";
+                }
+                qStr += " And category = '" + item + "'";
+                g++;
+            }
+            qStr += " GROUP BY review.business_id;";
             //run the query to find the business information
             qResult = mydb.SQLSELECTExec(qStr, bidColumn);
-
             dataGridView1.Rows.Clear();
             dataGridView1.Refresh();
             //place the given information into the dataGridView Search result table
-            for (int j = 1; j < qResult.Count(); j++)// At 1 so it doesn't include id
+            for (int j = 1; j < qResult.Count(); j++)
             {
                 //since each row in qResults contains all of one type of data ie names or cities
                 //we have to add a new row each time we go through i
                 for (int i = 0; i < qResult[j].Count(); i++)
                 {
                     dataGridView1.Rows.Add();
-                    dataGridView1.Rows[i].Cells[j-1].Value = qResult[j][i];
+                    dataGridView1.Rows[i].Cells[j - 1].Value = qResult[j][i];
                 }
             }
-
-            //Add average rating and # of reviews
-            List<string> select = new List<string>() { "avgRating", "numReviews" };
-
-            string query = "select avg(stars) as avgRating, count(*) as numReviews from review where business_id='";
-
-            //run the query to find the business information
-            for (int i = 0; i < qResult.Count(); i++)
-            {
-                List<List<string>> q = mydb.SQLSELECTExec(query + qResult[0][i] + "';", select);
-                try {
-                    dataGridView1.Rows[i].Cells[4].Value = q[0][0];
-                    dataGridView1.Rows[i].Cells[5].Value = q[1][0];
-                }catch(Exception e)
-                {
-                    dataGridView1.Rows[i].Cells[4].Value = 0;
-                    dataGridView1.Rows[i].Cells[5].Value = 0;
-                }
-            }
+            
+            
         } //eo update search results
 
         private void label54_Click(object sender, EventArgs e)
         {
 
+        }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            StringBuilder query = new StringBuilder("select date, stars, text, user_id, useful from review, (select id from business where name=");
+            query.Append("\"");
+            query.Append(this.dataGridView1.Rows[e.RowIndex].Cells[0].Value.ToString());
+            query.Append("\"");
+            query.Append(" and zipcode=");
+            query.Append(this.dataGridView1.Rows[e.RowIndex].Cells[3].Value.ToString());
+            query.Append(") as b where b.id=business_id;");
+            ViewReviews vr = new ViewReviews(query.ToString());
+            vr.Show();
         }
     }//eo form1
 }//eo namespace

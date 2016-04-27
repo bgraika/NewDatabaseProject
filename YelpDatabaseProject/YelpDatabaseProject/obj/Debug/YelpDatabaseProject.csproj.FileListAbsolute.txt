@@ -31,3 +31,4 @@ C:\Users\will\OneDrive\Documents\CptS451\DBProject\NewDatabaseProject\YelpDataba
 C:\Users\will\OneDrive\Documents\CptS451\DBProject\NewDatabaseProject\YelpDatabaseProject\YelpDatabaseProject\obj\Debug\YelpDatabaseProject.exe
 C:\Users\will\OneDrive\Documents\CptS451\DBProject\NewDatabaseProject\YelpDatabaseProject\YelpDatabaseProject\obj\Debug\YelpDatabaseProject.pdb
 C:\Users\will\OneDrive\Documents\CptS451\DBProject\NewDatabaseProject\YelpDatabaseProject\YelpDatabaseProject\obj\Debug\YelpDatabaseProject.csprojResolveAssemblyReference.cache
+C:\Users\will\OneDrive\Documents\CptS451\DBProject\NewDatabaseProject\YelpDatabaseProject\YelpDatabaseProject\obj\Debug\YelpDatabaseProject.ViewReviews.resources
